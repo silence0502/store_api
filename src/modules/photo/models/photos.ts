@@ -26,7 +26,7 @@ module.exports = function (sequelize, DataTypes) {
         },
         report_id: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
         },
         description: {
             type: DataTypes.STRING,
