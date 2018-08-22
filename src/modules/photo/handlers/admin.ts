@@ -28,7 +28,7 @@ let list_photo = (request) => {
         options = {
             // attributes: ['id', 'name', 'desc', 'cover', 'category', 'created_at'],
             where: {},
-            order: [],
+            order: 'created_at desc',
             limit: 50,
             offset: 0,
         }
@@ -40,9 +40,9 @@ let list_photo = (request) => {
     if (query.store && query.store != '') {
         options.where['store'] = query.store
     }
-    if (query.sort && query.sort != '') {
-        options.order.push(_.split(query.sort, ' '));
-    }
+    // if (query.sort && query.sort != '') {
+    //     options.order.push(_.split(query.sort, ' '));
+    // }
     if (query.page_size && query.page_size != '') {
         options.limit = query.page_size;
     }

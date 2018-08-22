@@ -1,14 +1,16 @@
 {
-    "apps": [
-        {
-            "script": "./dist/server.js",
-            "name": "store_api",
-            "interpreter": "node",
-            "env": {
-                "NODE_ENV": "dev"
-            },
-            "out_file": "store_api.log",
-            "error_file": "store_api-err.log"
-        }
-    ]
+  "apps": [
+    {
+      "script": "./dist/server.js",
+      "name": "store_api",
+      "interpreter": "node",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "out_file": "store_api.log",
+      "error_file": "store_api-err.log",
+      "watch": "./dist/",
+      "restart_delay": 2000
+    }
+  ]
 }
