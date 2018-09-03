@@ -14,6 +14,14 @@ let createUser = function (user: Object) {
 }
 
 /**
+ * 获取用户信息
+ * @param user 用户对象
+ */
+let infoUser = function (id: string) {
+    return models.user.findById(id)
+}
+
+/**
  * 创建门店
  * @param store 门店对象
  */
@@ -76,6 +84,19 @@ module.exports.user_create = {
             let _user = request.payload;
             _user.password = md5(_user.password)
             let result = await createUser(_user)
+            return reply(result)
+        }
+        catch (err) {
+            return reply(Boom.badRequest("创建用户失败"))
+        }
+    }
+};
+
+module.exports.user_info = {
+    handler: async function (request, reply) {
+        try {
+            let id = request.params.user_id;
+            let result = await infoUser(id)
             return reply(result)
         }
         catch (err) {

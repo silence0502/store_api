@@ -10,6 +10,10 @@ exports.register = (plugin, options, next) => {
             */
             { method: 'POST', path: '/users', config: handlers.Admin.user_create },
             /**
+            * 获取用户信息(users)
+            */
+            { method: 'GET', path: '/users/{user_id}', config: handlers.Admin.user_info },
+            /**
             * 添加门店(stores)
             */
             { method: 'POST', path: '/stores', config: handlers.Admin.store_create },

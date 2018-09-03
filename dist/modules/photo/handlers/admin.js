@@ -8,7 +8,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const _ = require("lodash");
 const Boom = require("boom");
 /**
  * 添加图片
@@ -25,6 +24,17 @@ let photoInfo = function (id) {
     return models.photos.findById(id);
 };
 /**
+ * 图片删除
+ * @param photo 用户对象
+ */
+let photoDelte = function (id) {
+    return models.photos.destroy({
+        where: {
+            id: id
+        }
+    });
+};
+/**
  * 照片列表
  * @param request
  */
@@ -32,7 +42,7 @@ let list_photo = (request) => {
     let query = request.query, options = {
         // attributes: ['id', 'name', 'desc', 'cover', 'category', 'created_at'],
         where: {},
-        order: [],
+        order: 'id desc',
         limit: 50,
         offset: 0,
     };
@@ -44,9 +54,9 @@ let list_photo = (request) => {
     if (query.store && query.store != '') {
         options.where['store'] = query.store;
     }
-    if (query.sort && query.sort != '') {
-        options.order.push(_.split(query.sort, ' '));
-    }
+    // if (query.sort && query.sort != '') {
+    //     options.order.push(_.split(query.sort, ' '));
+    // }
     if (query.page_size && query.page_size != '') {
         options.limit = query.page_size;
     }
@@ -90,6 +100,20 @@ module.exports.photo_info = {
                 if (!photo_info)
                     return reply(Boom.badRequest('获取图片详情失败！'));
                 return reply(photo_info);
+            }
+            catch (err) {
+                return reply(Boom.badRequest(err.message));
+            }
+        });
+    }
+};
+module.exports.photo_delete = {
+    handler: function (request, reply) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let { id } = request.params;
+                let result = yield photoDelte(id);
+                return reply({ id: id });
             }
             catch (err) {
                 return reply(Boom.badRequest(err.message));
