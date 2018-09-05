@@ -12,7 +12,7 @@ exports.register = (plugin, options, next) => {
             /**
             * 获取用户信息(users)
             */
-            { method: 'GET', path: '/users/{user_id}', config: handlers.Admin.user_info },
+            { method: 'GET', path: '/users/touch', config: handlers.Admin.user_info },
 
             /**
             * 添加门店(stores)
@@ -33,6 +33,11 @@ exports.register = (plugin, options, next) => {
             * 用户登录
             */
             { method: 'POST', path: '/login', config: handlers.Admin.login },
+
+            /**
+            * 用户登出
+            */
+            { method: 'GET', path: '/logout', config: handlers.Admin.logout },
 
         ]);
         next()
