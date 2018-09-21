@@ -208,6 +208,27 @@ module.exports.photo_create = {
         });
     }
 };
+module.exports.photo_add = {
+    handler: function (request, reply) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let imgBase64 = yield getImgBase64(request.payload.img);
+                let token = yield token_1.default.getToken();
+                let imgInfo = yield getImgInfo(imgBase64, token);
+                let orderArr = order(imgInfo.results, 'top');
+                let groupArr = group(orderArr);
+                let circleArr = circle(groupArr);
+                let data = { report_id: imgInfo.log_id };
+                let reportId = yield updateReportId(request.payload.id, data);
+                let result = crateReport(circleArr, imgInfo.log_id);
+                return reply(result);
+            }
+            catch (err) {
+                return reply(Boom.badRequest("添加图片失败"));
+            }
+        });
+    }
+};
 module.exports.photo_list = {
     handler: function (request, reply) {
         return __awaiter(this, void 0, void 0, function* () {

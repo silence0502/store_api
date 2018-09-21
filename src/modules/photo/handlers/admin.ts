@@ -264,6 +264,26 @@ module.exports.photo_create = {
     }
 };
 
+module.exports.photo_add = {
+    handler: async function (request, reply) {
+        try {
+            let imgBase64 = await getImgBase64(request.payload.img)
+            let token = await Token.getToken()
+            let imgInfo: any = await getImgInfo(imgBase64, token)
+            let orderArr = order(imgInfo.results, 'top')
+            let groupArr = group(orderArr)
+            let circleArr = circle(groupArr)
+            let data = { report_id: imgInfo.log_id }
+            let reportId = await updateReportId(request.payload.id, data)
+            let result = crateReport(circleArr, imgInfo.log_id)
+            return reply(result)
+        }
+        catch (err) {
+            return reply(Boom.badRequest("添加图片失败"))
+        }
+    }
+};
+
 module.exports.photo_list = {
     handler: async function (request, reply) {
         try {

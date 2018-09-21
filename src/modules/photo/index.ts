@@ -25,6 +25,11 @@ exports.register = (plugin, options, next) => {
             { method: 'GET', path: '/report/{id}', config: handlers.Admin.report_info },
 
             /**
+            * 每个烧饼详情(photo)
+            */
+            { method: 'POST', path: '/images', config: handlers.Admin.photo_add },
+
+            /**
             * 图片删除(photo)
             */
             { method: 'DELETE', path: '/photos/{id}', config: handlers.Admin.photo_delete },
