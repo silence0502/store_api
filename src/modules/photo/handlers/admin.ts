@@ -198,6 +198,18 @@ let photoDelte = function (id: string) {
 }
 
 /**
+ * 根据reportId查询每个饼详情
+ * @param photo 
+ */
+let reportInfo = function (report_id: string) {
+    return models.report.findAll({
+        where: {
+            report_id: report_id
+        }
+    })
+}
+
+/**
  * 照片列表
  * @param request 
  */
@@ -271,6 +283,21 @@ module.exports.photo_info = {
             let photo_info = await photoInfo(id)
             if (!photo_info) return reply(Boom.badRequest('获取图片详情失败！'))
             return reply(photo_info)
+        }
+        catch (err) {
+            return reply(Boom.badRequest(err.message))
+        }
+    }
+}
+
+module.exports.report_info = {
+    handler: async function (request, reply) {
+        try {
+            let { id } = request.params
+            let photo_info = await photoInfo(id)
+            let report_info = await reportInfo(photo_info.report_id)
+            if (!report_info) return reply(Boom.badRequest('获取图片详情失败！'))
+            return reply(report_info)
         }
         catch (err) {
             return reply(Boom.badRequest(err.message))

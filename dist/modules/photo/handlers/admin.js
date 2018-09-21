@@ -161,6 +161,13 @@ let photoDelte = function (id) {
         }
     });
 };
+let reportInfo = function (report_id) {
+    return models.report.findAll({
+        where: {
+            report_id: report_id
+        }
+    });
+};
 let list_photo = (request) => {
     let query = request.query, options = {
         where: {},
@@ -223,6 +230,23 @@ module.exports.photo_info = {
                 if (!photo_info)
                     return reply(Boom.badRequest('获取图片详情失败！'));
                 return reply(photo_info);
+            }
+            catch (err) {
+                return reply(Boom.badRequest(err.message));
+            }
+        });
+    }
+};
+module.exports.report_info = {
+    handler: function (request, reply) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let { id } = request.params;
+                let photo_info = yield photoInfo(id);
+                let report_info = yield reportInfo(photo_info.report_id);
+                if (!report_info)
+                    return reply(Boom.badRequest('获取图片详情失败！'));
+                return reply(report_info);
             }
             catch (err) {
                 return reply(Boom.badRequest(err.message));
