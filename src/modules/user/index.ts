@@ -10,6 +10,11 @@ exports.register = (plugin, options, next) => {
             { method: 'POST', path: '/users', config: handlers.Admin.user_create },
 
             /**
+            * 获取用户信息(users)
+            */
+            { method: 'GET', path: '/users/touch', config: handlers.Admin.user_info },
+
+            /**
             * 添加门店(stores)
             */
             { method: 'POST', path: '/stores', config: handlers.Admin.store_create },
@@ -28,6 +33,11 @@ exports.register = (plugin, options, next) => {
             * 用户登录
             */
             { method: 'POST', path: '/login', config: handlers.Admin.login },
+
+            /**
+            * 用户登出
+            */
+            { method: 'GET', path: '/logout', config: handlers.Admin.logout },
 
         ]);
         next()

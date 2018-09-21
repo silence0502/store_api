@@ -17,7 +17,12 @@ exports.register = (plugin, options, next) => {
             /**
             * 图片详情(photo)
             */
-            { method: 'GET', path: '/photos/{id}', config: handlers.Admin.photo_info }
+            { method: 'GET', path: '/photos/{id}', config: handlers.Admin.photo_info },
+
+            /**
+            * 图片删除(photo)
+            */
+            { method: 'DELETE', path: '/photos/{id}', config: handlers.Admin.photo_delete },
         ]);
         next()
     });

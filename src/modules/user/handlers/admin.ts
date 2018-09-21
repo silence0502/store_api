@@ -14,6 +14,14 @@ let createUser = function (user: Object) {
 }
 
 /**
+ * 获取用户信息
+ * @param user 用户对象
+ */
+let infoUser = function (id: string) {
+    return models.user.findById(id)
+}
+
+/**
  * 创建门店
  * @param store 门店对象
  */
@@ -84,6 +92,22 @@ module.exports.user_create = {
     }
 };
 
+module.exports.user_info = {
+    handler: async function (request, reply) {
+        try {
+            let user_id = request.params.id;
+            if (!user_id) {
+                user_id = request.session.uid;
+            }
+            let result = await infoUser(user_id)
+            return reply(result)
+        }
+        catch (err) {
+            return reply(Boom.badRequest("获取用户信息失败"))
+        }
+    }
+};
+
 module.exports.stores_list = {
     handler: async function (request, reply) {
         try {
@@ -130,11 +154,11 @@ module.exports.login = {
             if (!user) {
                 return reply(Boom.create(400, '用户名或密码错误', { timestamp: Date.now() }))
             } else {
+                request.session.uid = user['id'];
                 return reply(user);
             }
         }
         catch (err) {
-            request.log('error', err)
             return reply(Boom.badRequest("登录失败"))
         }
     }
@@ -147,7 +171,6 @@ module.exports.logout = {
             return reply({}).code(204);
         }
         catch (err) {
-            request.log('error', err)
             return reply(Boom.badRequest("退出登录失败"))
         }
     }

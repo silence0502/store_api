@@ -154,10 +154,17 @@ let getImgInfo = (imgBase64, token) => {
 let photoInfo = function (id) {
     return models.photos.findById(id);
 };
+let photoDelte = function (id) {
+    return models.photos.destroy({
+        where: {
+            id: id
+        }
+    });
+};
 let list_photo = (request) => {
     let query = request.query, options = {
         where: {},
-        order: 'created_at desc',
+        order: 'id desc',
         limit: 50,
         offset: 0,
     };
@@ -177,33 +184,19 @@ module.exports.photo_create = {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 let obj = yield createPhoto(request.payload);
-                return reply(obj);
+                let imgBase64 = yield getImgBase64(obj.img);
+                let token = yield token_1.default.getToken();
+                let imgInfo = yield getImgInfo(imgBase64, token);
+                let orderArr = order(imgInfo.results, 'top');
+                let groupArr = group(orderArr);
+                let circleArr = circle(groupArr);
+                let data = { report_id: imgInfo.log_id };
+                let reportId = yield updateReportId(obj.id, data);
+                let result = crateReport(circleArr, imgInfo.log_id);
+                return reply(result);
             }
             catch (err) {
                 return reply(Boom.badRequest("添加图片失败"));
-            }
-        });
-    }
-};
-module.exports.getImg = {
-    handler: function (request, reply) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                let imgUrl = 'http://xishaoye.test.upcdn.net/1/20180830-093146.jpg';
-                let result_1 = yield getImgBase64(imgUrl);
-                let token = yield token_1.default.getToken();
-                let result_2 = yield getImgInfo(result_1, token);
-                let result_3 = order(result_2.results, 'top');
-                let result_4 = group(result_3);
-                let result_5 = circle(result_4);
-                let data = { report_id: result_2.log_id };
-                let reportId = yield updateReportId(42, data);
-                let result_6 = crateReport(result_5, result_2.log_id);
-                return reply(result_6);
-            }
-            catch (err) {
-                console.log(err);
-                return reply(Boom.badRequest("获取失败"));
             }
         });
     }
@@ -230,6 +223,20 @@ module.exports.photo_info = {
                 if (!photo_info)
                     return reply(Boom.badRequest('获取图片详情失败！'));
                 return reply(photo_info);
+            }
+            catch (err) {
+                return reply(Boom.badRequest(err.message));
+            }
+        });
+    }
+};
+module.exports.photo_delete = {
+    handler: function (request, reply) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let { id } = request.params;
+                let result = yield photoDelte(id);
+                return reply({ id: id });
             }
             catch (err) {
                 return reply(Boom.badRequest(err.message));

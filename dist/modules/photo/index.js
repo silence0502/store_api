@@ -8,7 +8,7 @@ exports.register = (plugin, options, next) => {
             { method: 'POST', path: '/photos', config: handlers.Admin.photo_create },
             { method: 'GET', path: '/photos', config: handlers.Admin.photo_list },
             { method: 'GET', path: '/photos/{id}', config: handlers.Admin.photo_info },
-            { method: 'GET', path: '/photos/imgUrl', config: handlers.Admin.getImg },
+            { method: 'DELETE', path: '/photos/{id}', config: handlers.Admin.photo_delete },
         ]);
         next();
     });

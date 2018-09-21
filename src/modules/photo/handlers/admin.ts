@@ -186,6 +186,18 @@ let photoInfo = function (id: string) {
 }
 
 /**
+ * 图片删除
+ * @param photo 用户对象
+ */
+let photoDelte = function (id: string) {
+    return models.photos.destroy({
+        where: {
+            id: id
+        }
+    })
+}
+
+/**
  * 照片列表
  * @param request 
  */
@@ -194,7 +206,7 @@ let list_photo = (request) => {
         options = {
             // attributes: ['id', 'name', 'desc', 'cover', 'category', 'created_at'],
             where: {},
-            order: 'created_at desc',
+            order: 'id desc',
             limit: 50,
             offset: 0,
         }
@@ -231,7 +243,7 @@ module.exports.photo_create = {
             let circleArr = circle(groupArr)
             let data = { report_id: imgInfo.log_id }
             let reportId = await updateReportId(obj.id, data)
-            let result = crateReport(result_5, imgInfo.log_id)
+            let result = crateReport(circleArr, imgInfo.log_id)
             return reply(result)
         }
         catch (err) {
@@ -259,6 +271,19 @@ module.exports.photo_info = {
             let photo_info = await photoInfo(id)
             if (!photo_info) return reply(Boom.badRequest('获取图片详情失败！'))
             return reply(photo_info)
+        }
+        catch (err) {
+            return reply(Boom.badRequest(err.message))
+        }
+    }
+}
+
+module.exports.photo_delete = {
+    handler: async function (request, reply) {
+        try {
+            let { id } = request.params
+            let result = await photoDelte(id)
+            return reply({ id: id })
         }
         catch (err) {
             return reply(Boom.badRequest(err.message))
