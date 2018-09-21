@@ -10,32 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const md5 = require("md5");
 const Boom = require("boom");
-/**
- * 创建用户
- * @param user 用户对象
- */
 let createUser = function (user) {
     return models.user.create(user);
 };
-/**
- * 创建门店
- * @param store 门店对象
- */
 let createStore = function (store) {
     return models.store.create(store);
 };
-/**
- * 创建联系
- * @param store 联系对象
- */
 let userCreateStore = function (user_store) {
     return models.user_store.create(user_store);
 };
-/**
- * 登录
- * @param email 用户名
- * @param password 密码
- */
 let login = function (email, password) {
     return new Promise(function (resolve, reject) {
         models.user.findOne({ where: { email: email } }).then(function (user) {
@@ -43,10 +26,6 @@ let login = function (email, password) {
         });
     });
 };
-/**
- * 门店列表
- * * @param request 查询信息对象
- */
 let list_store_arr = (request) => {
     return models.user_store.findAll({
         attributes: ['store_id'],

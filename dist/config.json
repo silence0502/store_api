@@ -8,5 +8,16 @@
   },
   "upload": {
     "path": "uploads"
+  },
+  "client": {
+    "api_key": "mwyAA7o6HrY7HiCPR0GCGqT0",
+    "secret_key": "Sw62wG872kYSM5ji2wvemNAgZO4i3jcc"
+  },
+  "ratio": {
+    "group": 120,
+    "compair_max": 1.1,
+    "compair_min": 0.9,
+    "s_max": 122500,
+    "s_min": 96100
   }
 }

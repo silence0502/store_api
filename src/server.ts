@@ -2,6 +2,7 @@ import * as Hapi from "hapi";
 import * as Glue from "glue";
 import manifest from "./config/manifest";
 import config from "./config/config";
+import Token from "./token";
 
 const database = config.database;
 
@@ -19,10 +20,11 @@ Glue.compose(
       segment: "demo_cache",
       expiresIn: 24 * 60 * 60 * 1000
     });
-    server.start(() => {
+    server.start(async () => {
       console.log(
         "✅  Server is listening on " + server.info.uri.toLowerCase()
       );
+      let token = await Token.getToken();
     });
   }
 );

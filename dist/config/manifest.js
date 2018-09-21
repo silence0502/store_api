@@ -7,19 +7,11 @@ const config_1 = require("./config");
 let modelsPath = path.join(path.dirname(fs.realpathSync(__filename)), "../modules");
 let uploadsPath = path.join(path.dirname(fs.realpathSync(__filename)), `../../${config_1.default.upload.path}`);
 const database = config_1.default.database;
-// const redis = config.redis;
 exports.default = {
     server: {
         debug: {
             request: ["error", "received"]
         }
-        // cache: {
-        //     engine: 'catbox-redis',
-        //     options: {
-        //         host: redis.host,
-        //         port: redis.port
-        //     },
-        // }
     },
     connections: [
         {
@@ -80,8 +72,8 @@ exports.default = {
                             port: database.port,
                             dialect: "postgres"
                         }),
-                        sync: true,
-                        forceSync: false // force sync (drops tables) - default false
+                        sync: false,
+                        forceSync: false
                     }
                 ]
             }
@@ -101,17 +93,6 @@ exports.default = {
                 }
             }
         },
-        // {
-        //     plugin: {
-        //         register: 'hapi-redis',
-        //         options: {
-        //             connection: {
-        //                 "host": redis.host,
-        //                 "port": redis.port,
-        //             }
-        //         }
-        //     }
-        // },
         {
             plugin: "./modules/user",
             options: {

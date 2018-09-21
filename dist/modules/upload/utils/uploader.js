@@ -24,7 +24,6 @@ let mkdir = function (path) {
     });
 };
 const uploader = function (file, options) {
-    // Check if a file is selected for upload.
     if (!file) {
         throw new Error('No file to upload');
     }
@@ -34,21 +33,17 @@ const _fileHandler = function (file, options) {
     return __awaiter(this, void 0, void 0, function* () {
         const originalname = _.toLower(file.hapi.filename);
         const filename = `${uuid.v1()}.${_extension(originalname)}`;
-        // Check if just images can be uploaded, otherwise write file.
         if (fileFilter(originalname)) {
             throw new Error('不支持的文件类型.');
         }
         else {
-            //创建对应文件夹
             let _fileType = fileType(originalname);
             let d = new Date();
             let datastr = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
             yield mkdir(`${options.dest}${_fileType}/${datastr}`);
             const path = `${options.dest}${_fileType}/${datastr}/${filename}`;
             const rpath = `${_fileType}/${datastr}/${filename}`;
-            // Write file on disk
             const filestream = fs.createWriteStream(path);
-            // Return file data
             return new Promise((resolve, reject) => {
                 file.on('error', function (err) {
                     reject(err);
@@ -78,14 +73,12 @@ const _fileHandler = function (file, options) {
         }
     });
 };
-// check file type.
 const fileFilter = function (fileName) {
     if (fileName.match(/\.(jpg|png|apk|zip|mp3|mp4|doc|docx|xls|xlsx|pdf|txt|md)$/)) {
         return false;
     }
     return true;
 };
-//根据文件后缀区分文件类型（pic,video,audio,app';）
 const fileType = function (fileName) {
     if (fileName.match(/\.(jpg|jpeg|png|gif|)$/)) {
         return 'pic';
@@ -104,7 +97,6 @@ const fileType = function (fileName) {
     }
     return false;
 };
-// Get file extension.
 const _extension = function (fileName) {
     const arr = fileName.split('.');
     const item = arr.length - 1;

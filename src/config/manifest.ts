@@ -92,7 +92,7 @@ export default {
                 dialect: "postgres"
               }
             ), // sequelize instance
-            sync: true, // sync models - default false
+            sync: false, // sync models - default false
             forceSync: false // force sync (drops tables) - default false
           }
         ]

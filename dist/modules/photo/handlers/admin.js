@@ -8,44 +8,161 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const _ = require("lodash");
 const Boom = require("boom");
-/**
- * 添加图片
- * @param photo 用户对象
- */
+var request = require('request');
+const axios = require('axios');
+const config_1 = require("../../../config/config");
+const token_1 = require("../../../token");
 let createPhoto = function (photo) {
     return models.photos.create(photo);
 };
-/**
- * 图片详情
- * @param photo 用户对象
- */
+let getImgBase64 = (imgUrl) => {
+    return new Promise((resolve, reject) => {
+        request({
+            url: imgUrl,
+            encoding: "base64",
+        }, (err, res, base64) => {
+            resolve(base64);
+        });
+    });
+};
+let order = (object, op) => {
+    function sequence(a, b) {
+        if (a.location[op] > b.location[op]) {
+            return 1;
+        }
+        else if (a.location[op] < b.location[op]) {
+            return -1;
+        }
+        else {
+            return 0;
+        }
+    }
+    return object.sort(sequence);
+};
+let group = (object) => {
+    let count = 0, m = [];
+    while (count < object.length) {
+        let first = true;
+        let row = [];
+        for (let index = 0; index < object.length; index++) {
+            const element = object[index];
+            if (!element['done']) {
+                if (first) {
+                    first = false;
+                    row.push(element);
+                    element['done'] = true;
+                }
+                else if (Math.abs(element.location.top - row[0].location.top) < config_1.default.ratio.group) {
+                    row.push(element);
+                    element['done'] = true;
+                }
+            }
+            else {
+                count++;
+            }
+        }
+        m.push(order(row, 'left'));
+    }
+    return m;
+};
+let circle = (object) => {
+    let count = 1;
+    for (let i = 0; i < object.length; i++) {
+        for (let j = 0; j < object[i].length; j++) {
+            let compair = object[i][j].location.width / object[i][j].location.height;
+            let acreage = object[i][j].location.width * object[i][j].location.height;
+            object[i][j]["count"] = count;
+            if (compair >= config_1.default.ratio.compair_min && compair <= config_1.default.ratio.compair_max) {
+                object[i][j]["compair"] = true;
+            }
+            else {
+                object[i][j]["compair"] = false;
+            }
+            if (acreage >= config_1.default.ratio.s_min && acreage <= config_1.default.ratio.s_max) {
+                object[i][j]["acreage"] = 1;
+            }
+            else if (acreage > config_1.default.ratio.s_max) {
+                object[i][j]["acreage"] = 2;
+            }
+            else {
+                object[i][j]["acreage"] = 0;
+            }
+            count++;
+        }
+    }
+    return object;
+};
+let updateReportId = (id, data) => {
+    return models.photos.update(data, {
+        where: {
+            id: id
+        }
+    });
+};
+let crateReport = (arroy, report_id) => {
+    let arr = [];
+    arroy.map((item, index) => {
+        item.map((items, indexs) => {
+            let quality_com;
+            let quality_acr;
+            if (items.compair) {
+                quality_com = '圆';
+            }
+            else {
+                quality_com = '不圆';
+            }
+            if (items.acreage === 1) {
+                quality_acr = '大小正好';
+            }
+            else if (items.acreage === 2) {
+                quality_acr = '大';
+            }
+            else {
+                quality_acr = '小';
+            }
+            arr.push({ report_id: report_id, num: items.count, type: 1, height: items.location.height, width: items.location.width, top: items.location.top, left: items.location.left, quality: quality_com });
+            arr.push({ report_id: report_id, num: items.count, type: 2, height: items.location.height, width: items.location.width, top: items.location.top, left: items.location.left, quality: quality_acr });
+        });
+    });
+    return models.report.bulkCreate(arr);
+};
+let getImgInfo = (imgBase64, token) => {
+    return new Promise((resolve, reject) => {
+        axios({
+            url: 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/detection/baibing-position',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            params: {
+                access_token: token,
+            },
+            data: {
+                image: imgBase64,
+                top_num: 5
+            }
+        })
+            .then(function (response) {
+            resolve(response.data);
+        })
+            .catch(function (error) {
+            resolve(error);
+        });
+    });
+};
 let photoInfo = function (id) {
     return models.photos.findById(id);
 };
-/**
- * 照片列表
- * @param request
- */
 let list_photo = (request) => {
     let query = request.query, options = {
-        // attributes: ['id', 'name', 'desc', 'cover', 'category', 'created_at'],
         where: {},
-        order: [],
+        order: 'created_at desc',
         limit: 50,
         offset: 0,
     };
-    // if (query.query_key && query.query_key != '') {
-    //     options.where['name'] = {
-    //         $like: `%${query.query_key}%`
-    //     }
-    // }
     if (query.store && query.store != '') {
         options.where['store'] = query.store;
-    }
-    if (query.sort && query.sort != '') {
-        options.order.push(_.split(query.sort, ' '));
     }
     if (query.page_size && query.page_size != '') {
         options.limit = query.page_size;
@@ -59,11 +176,34 @@ module.exports.photo_create = {
     handler: function (request, reply) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                let result = yield createPhoto(request.payload);
-                return reply(result);
+                let obj = yield createPhoto(request.payload);
+                return reply(obj);
             }
             catch (err) {
                 return reply(Boom.badRequest("添加图片失败"));
+            }
+        });
+    }
+};
+module.exports.getImg = {
+    handler: function (request, reply) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let imgUrl = 'http://xishaoye.test.upcdn.net/1/20180830-093146.jpg';
+                let result_1 = yield getImgBase64(imgUrl);
+                let token = yield token_1.default.getToken();
+                let result_2 = yield getImgInfo(result_1, token);
+                let result_3 = order(result_2.results, 'top');
+                let result_4 = group(result_3);
+                let result_5 = circle(result_4);
+                let data = { report_id: result_2.log_id };
+                let reportId = yield updateReportId(42, data);
+                let result_6 = crateReport(result_5, result_2.log_id);
+                return reply(result_6);
+            }
+            catch (err) {
+                console.log(err);
+                return reply(Boom.badRequest("获取失败"));
             }
         });
     }

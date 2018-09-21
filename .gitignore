@@ -1,0 +1,10 @@
+logs
+dist
+.vscode
+node_modules/
+npm-debug.log
+yarn-error.log
+logs
+uploads
+mext_api
+resources

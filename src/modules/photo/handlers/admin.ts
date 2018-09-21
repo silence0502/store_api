@@ -1,5 +1,10 @@
 import * as _ from 'lodash'
 import * as Boom from 'boom'
+var request = require('request')
+const axios = require('axios')
+
+import config from "../../../config/config";
+import Token from "../../../token";
 
 declare let models: any;
 
@@ -9,6 +14,167 @@ declare let models: any;
  */
 let createPhoto = function (photo: Object) {
     return models.photos.create(photo)
+}
+
+/**
+ * 拿图片的base64码
+ * @param photo 
+ */
+let getImgBase64 = (imgUrl) => {
+    return new Promise((resolve, reject) => {
+        request({
+            url: imgUrl,
+            encoding: "base64",
+        }, (err, res, base64) => {
+            resolve(base64)
+        })
+    })
+}
+
+/**
+ * 排序
+ * @param photo 
+ */
+let order = (object, op) => {
+    function sequence(a, b) {
+        if (a.location[op] > b.location[op]) {
+            return 1;
+        } else if (a.location[op] < b.location[op]) {
+            return -1
+        } else {
+            return 0;
+        }
+    }
+    return object.sort(sequence)
+}
+
+/**
+ * 分组
+ * @param photo 
+ */
+let group = (object) => {
+    let count = 0, m = [];
+    while (count < object.length) {
+        let first = true;
+        let row = [];
+        for (let index = 0; index < object.length; index++) {
+            const element = object[index];
+            if (!element['done']) {
+                if (first) {
+                    first = false;
+                    row.push(element);
+                    element['done'] = true;
+                }
+                else if (Math.abs(element.location.top - row[0].location.top) < config.ratio.group) {
+                    row.push(element);
+                    element['done'] = true;
+                }
+            } else {
+                count++
+            }
+        }
+        m.push(order(row, 'left'));
+    }
+    return m;
+}
+
+/**
+ * 看规格
+ * @param photo 
+ */
+let circle = (object) => {
+    let count = 1
+    for (let i = 0; i < object.length; i++) {
+        for (let j = 0; j < object[i].length; j++) {
+            let compair = object[i][j].location.width / object[i][j].location.height;
+            let acreage = object[i][j].location.width * object[i][j].location.height;
+            object[i][j]["count"] = count;
+            if (compair >= config.ratio.compair_min && compair <= config.ratio.compair_max) {
+                object[i][j]["compair"] = true;
+            } else {
+                object[i][j]["compair"] = false;
+            }
+            if (acreage >= config.ratio.s_min && acreage <= config.ratio.s_max) {
+                object[i][j]["acreage"] = 1;
+            } else if (acreage > config.ratio.s_max) {
+                object[i][j]["acreage"] = 2;
+            } else {
+                object[i][j]["acreage"] = 0;
+            }
+            count++
+        }
+    }
+    return object;
+}
+
+/**
+ * 把report_id加入表
+ * * @param 
+ */
+let updateReportId = (id, data) => {
+    return models.photos.update(data, {
+        where: {
+            id: id
+        }
+    })
+}
+
+/**
+ * 向report表加数据
+ * * @param 
+ */
+let crateReport = (arroy, report_id) => {
+    let arr: any = []
+    arroy.map((item, index) => {
+        item.map((items, indexs) => {
+            let quality_com: any
+            let quality_acr: any
+            if (items.compair) {
+                quality_com = '圆'
+            } else {
+                quality_com = '不圆'
+            }
+            if (items.acreage === 1) {
+                quality_acr = '大小正好'
+            } else if (items.acreage === 2) {
+                quality_acr = '大'
+            } else {
+                quality_acr = '小'
+            }
+            arr.push({ report_id: report_id, num: items.count, type: 1, height: items.location.height, width: items.location.width, top: items.location.top, left: items.location.left, quality: quality_com })
+            arr.push({ report_id: report_id, num: items.count, type: 2, height: items.location.height, width: items.location.width, top: items.location.top, left: items.location.left, quality: quality_acr })
+        })
+    })
+    return models.report.bulkCreate(arr)
+}
+
+/**
+ * 请求百度接口
+ * @param photo 
+ */
+let getImgInfo = (imgBase64, token) => {
+    return new Promise((resolve, reject) => {
+        axios({
+            url: 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/detection/baibing-position',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            params: {
+                access_token: token,
+            },
+            data: {
+                image: imgBase64,
+                top_num: 5
+            }
+        })
+            .then(function (response) {
+                resolve(response.data)
+            })
+            .catch(function (error) {
+                resolve(error)
+            })
+    })
 }
 
 /**
@@ -56,7 +222,16 @@ let list_photo = (request) => {
 module.exports.photo_create = {
     handler: async function (request, reply) {
         try {
-            let result = await createPhoto(request.payload)
+            let obj = await createPhoto(request.payload)
+            let imgBase64 = await getImgBase64(obj.img)
+            let token = await Token.getToken()
+            let imgInfo: any = await getImgInfo(imgBase64, token)
+            let orderArr = order(imgInfo.results, 'top')
+            let groupArr = group(orderArr)
+            let circleArr = circle(groupArr)
+            let data = { report_id: imgInfo.log_id }
+            let reportId = await updateReportId(obj.id, data)
+            let result = crateReport(result_5, imgInfo.log_id)
             return reply(result)
         }
         catch (err) {

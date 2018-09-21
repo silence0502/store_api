@@ -17,7 +17,7 @@ module.exports.upload = {
         output: 'stream',
         parse: true,
         maxBytes: 1048576000,
-        allow: 'multipart/form-data' // Important
+        allow: 'multipart/form-data'
     },
     handler: function (request, reply) {
         return __awaiter(this, void 0, void 0, function* () {

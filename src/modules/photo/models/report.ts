@@ -10,6 +10,26 @@ module.exports = function (sequelize, DataTypes) {
         },
         info: {
             type: DataTypes.STRING,
+            allowNull: true
+        },
+        report_id: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        height: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        width: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        top: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        left: {
+            type: DataTypes.STRING,
             allowNull: false
         },
         quality: {
