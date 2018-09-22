@@ -110,16 +110,16 @@ let crateReport = (arroy, report_id) => {
                 quality_com = '圆';
             }
             else {
-                quality_com = '不圆';
+                quality_com = '非圆';
             }
             if (items.acreage === 1) {
-                quality_acr = '大小正好';
+                quality_acr = '合格';
             }
             else if (items.acreage === 2) {
-                quality_acr = '大';
+                quality_acr = '偏大';
             }
             else {
-                quality_acr = '小';
+                quality_acr = '偏小';
             }
             arr.push({ report_id: report_id, num: items.count, type: 1, height: items.location.height, width: items.location.width, top: items.location.top, left: items.location.left, quality: quality_com });
             arr.push({ report_id: report_id, num: items.count, type: 2, height: items.location.height, width: items.location.width, top: items.location.top, left: items.location.left, quality: quality_acr });
