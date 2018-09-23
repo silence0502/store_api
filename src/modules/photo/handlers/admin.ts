@@ -198,6 +198,18 @@ let photoDelte = function (id: string) {
 }
 
 /**
+ * 分析删除
+ * @param photo 用户对象
+ */
+let reportDelte = function (report_id: string) {
+    return models.report.destroy({
+        where: {
+            report_id: report_id
+        }
+    })
+}
+
+/**
  * 根据reportId查询每个饼详情
  * @param photo 
  */
@@ -329,7 +341,9 @@ module.exports.photo_delete = {
     handler: async function (request, reply) {
         try {
             let { id } = request.params
+            let photo_info = await photoInfo(id)
             let result = await photoDelte(id)
+            let result_1 = await reportDelte(photo_info.report_id)
             return reply({ id: id })
         }
         catch (err) {

@@ -161,6 +161,13 @@ let photoDelte = function (id) {
         }
     });
 };
+let reportDelte = function (report_id) {
+    return models.report.destroy({
+        where: {
+            report_id: report_id
+        }
+    });
+};
 let reportInfo = function (report_id) {
     return models.report.findAll({
         where: {
@@ -280,7 +287,9 @@ module.exports.photo_delete = {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 let { id } = request.params;
+                let photo_info = yield photoInfo(id);
                 let result = yield photoDelte(id);
+                let result_1 = yield reportDelte(photo_info.report_id);
                 return reply({ id: id });
             }
             catch (err) {
