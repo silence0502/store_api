@@ -175,6 +175,13 @@ let getImpurityImgInfo = (imgBase64, token) => {
         });
     });
 };
+let crateImpurityReport = (arroy, report_id) => {
+    let arr = [];
+    arroy.map((item, index) => {
+        arr.push({ report_id: report_id, num: 0, type: 3, height: item.location.height, width: item.location.width, top: item.location.top, left: item.location.left, quality: '有杂质' });
+    });
+    return models.report.bulkCreate(arr);
+};
 let photoInfo = function (id) {
     return models.photos.findById(id);
 };
@@ -195,7 +202,18 @@ let reportDelte = function (report_id) {
 let reportInfo = function (report_id) {
     return models.report.findAll({
         where: {
-            report_id: report_id
+            report_id: report_id,
+            type: {
+                $in: ['1', '2']
+            }
+        }
+    });
+};
+let reportImpurityInfo = function (report_id) {
+    return models.report.findAll({
+        where: {
+            report_id: report_id,
+            type: '3'
         }
     });
 };
@@ -225,13 +243,17 @@ module.exports.photo_create = {
                 let imgBase64 = yield getImgBase64(request.payload.img);
                 let token = yield token_1.default.getToken();
                 let imgInfo = yield getImgInfo(imgBase64, token);
+                let imgImpurityInfo = yield getImpurityImgInfo(imgBase64, token);
+                if (imgImpurityInfo.results.length > 0) {
+                    let impurityData = yield crateImpurityReport(imgImpurityInfo.results, imgInfo.log_id);
+                }
                 let orderArr = order(imgInfo.results, 'top');
                 let groupArr = group(orderArr);
                 let circleArr = circle(groupArr);
                 let data = { report_id: imgInfo.log_id };
                 let reportId = yield updateReportId(obj.id, data);
                 let result = crateReport(circleArr, imgInfo.log_id);
-                return reply(result);
+                return reply("添加图片成功");
             }
             catch (err) {
                 return reply(Boom.badRequest("添加图片失败"));
@@ -245,12 +267,14 @@ module.exports.photo_add = {
             try {
                 let imgBase64 = yield getImgBase64(request.payload.img);
                 let token = yield token_1.default.getToken();
-                let imgInfo = yield getImgInfo(imgBase64, token);
                 let imgImpurityInfo = yield getImpurityImgInfo(imgBase64, token);
                 if (imgImpurityInfo.results.length > 0) {
-                    return reply(imgImpurityInfo);
+                    let impurityData = yield crateImpurityReport(imgImpurityInfo.results, request.payload.report_id);
                 }
-                return reply("添加成功");
+                else {
+                    console.log(request.payload.report_id);
+                }
+                return reply(imgImpurityInfo);
             }
             catch (err) {
                 return reply(Boom.badRequest("添加图片失败"));
@@ -297,6 +321,21 @@ module.exports.report_info = {
                 if (!report_info)
                     return reply(Boom.badRequest('获取图片详情失败！'));
                 return reply(report_info);
+            }
+            catch (err) {
+                return reply(Boom.badRequest(err.message));
+            }
+        });
+    }
+};
+module.exports.report_impurity_info = {
+    handler: function (request, reply) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let { id } = request.params;
+                let photo_info = yield photoInfo(id);
+                let report_impurity_info = yield reportImpurityInfo(photo_info.report_id);
+                return reply(report_impurity_info);
             }
             catch (err) {
                 return reply(Boom.badRequest(err.message));

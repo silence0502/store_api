@@ -25,6 +25,11 @@ exports.register = (plugin, options, next) => {
             { method: 'GET', path: '/report/{id}', config: handlers.Admin.report_info },
 
             /**
+            * 每个烧饼杂质详情(photo)
+            */
+            { method: 'GET', path: '/report_impurity/{id}', config: handlers.Admin.report_impurity_info },
+
+            /**
             * 每个烧饼详情(photo)
             */
             { method: 'POST', path: '/images', config: handlers.Admin.photo_add },
