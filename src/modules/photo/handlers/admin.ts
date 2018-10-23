@@ -178,6 +178,35 @@ let getImgInfo = (imgBase64, token) => {
 }
 
 /**
+ * 请求百度接口
+ * @param photo 
+ */
+let getImpurityImgInfo = (imgBase64, token) => {
+    return new Promise((resolve, reject) => {
+        axios({
+            url: 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/detection/baibing-zazhi',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            params: {
+                access_token: token,
+            },
+            data: {
+                image: imgBase64,
+                top_num: 5
+            }
+        })
+            .then(function (response) {
+                resolve(response.data)
+            })
+            .catch(function (error) {
+                resolve(error)
+            })
+    })
+}
+
+/**
  * 图片详情
  * @param photo 用户对象
  */
@@ -259,7 +288,7 @@ module.exports.photo_create = {
     handler: async function (request, reply) {
         try {
             let obj = await createPhoto(request.payload)
-            let imgBase64 = await getImgBase64(obj.img)
+            let imgBase64 = await getImgBase64(request.payload.img)
             let token = await Token.getToken()
             let imgInfo: any = await getImgInfo(imgBase64, token)
             let orderArr = order(imgInfo.results, 'top')
@@ -282,13 +311,17 @@ module.exports.photo_add = {
             let imgBase64 = await getImgBase64(request.payload.img)
             let token = await Token.getToken()
             let imgInfo: any = await getImgInfo(imgBase64, token)
-            let orderArr = order(imgInfo.results, 'top')
-            let groupArr = group(orderArr)
-            let circleArr = circle(groupArr)
-            let data = { report_id: imgInfo.log_id }
-            let reportId = await updateReportId(request.payload.id, data)
-            let result = crateReport(circleArr, imgInfo.log_id)
-            return reply(result)
+            let imgImpurityInfo: any = await getImpurityImgInfo(imgBase64, token)
+            if (imgImpurityInfo.results.length > 0) {
+                return reply(imgImpurityInfo)
+            }
+            // let orderArr = order(imgInfo.results, 'top')
+            // let groupArr = group(orderArr)
+            // let circleArr = circle(groupArr)
+            // let data = { report_id: imgInfo.log_id }
+            // let reportId = await updateReportId(request.payload.id, data)
+            // let result = crateReport(circleArr, imgInfo.log_id)
+            return reply("添加成功")
         }
         catch (err) {
             return reply(Boom.badRequest("添加图片失败"))

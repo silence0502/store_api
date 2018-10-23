@@ -151,6 +151,30 @@ let getImgInfo = (imgBase64, token) => {
         });
     });
 };
+let getImpurityImgInfo = (imgBase64, token) => {
+    return new Promise((resolve, reject) => {
+        axios({
+            url: 'https://aip.baidubce.com/rpc/2.0/ai_custom/v1/detection/baibing-zazhi',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            params: {
+                access_token: token,
+            },
+            data: {
+                image: imgBase64,
+                top_num: 5
+            }
+        })
+            .then(function (response) {
+            resolve(response.data);
+        })
+            .catch(function (error) {
+            resolve(error);
+        });
+    });
+};
 let photoInfo = function (id) {
     return models.photos.findById(id);
 };
@@ -198,7 +222,7 @@ module.exports.photo_create = {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 let obj = yield createPhoto(request.payload);
-                let imgBase64 = yield getImgBase64(obj.img);
+                let imgBase64 = yield getImgBase64(request.payload.img);
                 let token = yield token_1.default.getToken();
                 let imgInfo = yield getImgInfo(imgBase64, token);
                 let orderArr = order(imgInfo.results, 'top');
@@ -222,13 +246,11 @@ module.exports.photo_add = {
                 let imgBase64 = yield getImgBase64(request.payload.img);
                 let token = yield token_1.default.getToken();
                 let imgInfo = yield getImgInfo(imgBase64, token);
-                let orderArr = order(imgInfo.results, 'top');
-                let groupArr = group(orderArr);
-                let circleArr = circle(groupArr);
-                let data = { report_id: imgInfo.log_id };
-                let reportId = yield updateReportId(request.payload.id, data);
-                let result = crateReport(circleArr, imgInfo.log_id);
-                return reply(result);
+                let imgImpurityInfo = yield getImpurityImgInfo(imgBase64, token);
+                if (imgImpurityInfo.results.length > 0) {
+                    return reply(imgImpurityInfo);
+                }
+                return reply("添加成功");
             }
             catch (err) {
                 return reply(Boom.badRequest("添加图片失败"));

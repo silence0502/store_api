@@ -6,7 +6,6 @@
         "noImplicitAny": false,
         "sourceMap": false,
         "outDir": "dist",
-        "resolveJsonModule": true,
         "removeComments": true
     }
 }
